@@ -7,7 +7,8 @@ from app.database import get_db
 router = APIRouter()
 
 
-@router.post("/books")  # Add book to lib
+# librarians issue and return requests bodies are empty needs update
+@router.post("/books/add")  # Add book to lib
 async def add_book(book: PydanticBook, db: Session = Depends(get_db)):
     db_book = SQLAlchemyBook(**book.dict())
     db.add(db_book)
@@ -16,7 +17,7 @@ async def add_book(book: PydanticBook, db: Session = Depends(get_db)):
     return {"message": f"The book '{db_book.title}' has been added."}
 
 
-@router.post("/books")  # Remove book to lib
+@router.post("/books/remove")  # Remove book to lib
 async def remove_book(book: PydanticBook, db: Session = Depends(get_db)):
     db_book = (
         db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book.book_id).first()
@@ -27,6 +28,43 @@ async def remove_book(book: PydanticBook, db: Session = Depends(get_db)):
     db.delete(db_book)
     db.commit()
     return {"message": f"The book '{db_book.title}' has been removed."}
+
+
+@router.post("/members/add")
+async def add_member(member: PydanticMember, db: Session = Depends(get_db)):
+    db_member = SQLAlchemyMember(**member.dict())
+    db.add(db_member)
+    db.commit()
+    db.refresh(db_member)
+    return {"message": f"The member '{db_member.name}' has been added."}
+
+
+@router.delete("/members/remove")
+async def remove_member(member_id: int, db: Session = Depends(get_db)):
+    db_member = (
+        db.query(SQLAlchemyMember)
+        .filter(SQLAlchemyMember.member_id == member_id)
+        .first()
+    )
+    if db_member is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    db.delete(db_member)
+    db.commit()
+    return {"message": f"The member '{db_member.name}' has been removed."}
+
+
+@router.get("/members/{member_id}")
+async def show_member_info(member_id: int, db: Session = Depends(get_db)):
+    db_member = (
+        db.query(SQLAlchemyMember)
+        .filter(SQLAlchemyMember.member_id == member_id)
+        .first()
+    )
+    if db_member is None:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    return db_member
 
 
 @router.post("/issue")  # issue book

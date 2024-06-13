@@ -2,12 +2,10 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 from datetime import datetime
 
-# Add these functions to crud.py
-
 
 def create_book(db: Session, book: schemas.BookCreate, library_id: int):
     book_data = book.dict()
-    book_data.pop("library_id", None)  # library_id anahtarını çıkarıyoruz, varsa
+    book_data.pop("library_id", None)
     db_book = models.Book(**book_data, library_id=library_id)
     db.add(db_book)
     db.commit()
@@ -26,7 +24,7 @@ def delete_book(db: Session, book_id: int):
 
 def create_member(db: Session, member: schemas.MemberCreate, library_id: int):
     member_data = member.dict()
-    member_data.pop("library_id", None)  # library_id anahtarını çıkarıyoruz, varsa
+    member_data.pop("library_id", None)
     db_member = models.Member(**member_data, library_id=library_id)
     db.add(db_member)
     db.commit()

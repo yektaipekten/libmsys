@@ -6,6 +6,7 @@ from .. import crud, models, schemas, database
 router = APIRouter()
 
 
+# this part is working but can transfer to librarian
 # Create a new library
 @router.post("/library/", response_model=schemas.Library)
 def create_library(
@@ -17,7 +18,7 @@ def create_library(
 # Read libraries with pagination
 @router.get("/library/", response_model=List[schemas.Library])
 def read_libraries(
-    skip: int = 0, limit: int = 10, db: Session = Depends(database.get_db)
+    skip: int = 0, limit: int = 20, db: Session = Depends(database.get_db)
 ):
     return crud.get_libraries(db, skip=skip, limit=limit)
 

@@ -9,8 +9,8 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-app.include_router(library.router)
-app.include_router(book.router)
-app.include_router(member.router)
-app.include_router(librarian.router)
-app.include_router(transaction.router)
+app.include_router(book.router, prefix="/books", tags=["books"])
+app.include_router(librarian.router, prefix="/librarians", tags=["librarians"])
+app.include_router(member.router, prefix="/members", tags=["members"])
+app.include_router(library.router, prefix="/libraries", tags=["libraries"])
+app.include_router(transaction.router, prefix="/transactions", tags=["transactions"])
