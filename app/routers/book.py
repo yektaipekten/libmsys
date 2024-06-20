@@ -7,7 +7,6 @@ from app.database import get_db
 router = APIRouter()
 
 
-# unnecessary
 @router.get("/availability/{book_id}", response_model=PydanticBook)
 async def check_availability(book_id: int, db: Session = Depends(get_db)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
@@ -25,7 +24,6 @@ async def check_availability(book_id: int, db: Session = Depends(get_db)):
     }
 
 
-# unnecessary
 @router.post("/return/{book_id}")
 async def return_book(book_id: int, db: Session = Depends(get_db)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()

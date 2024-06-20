@@ -2,9 +2,40 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.models import Book as SQLAlchemyBook, Member as SQLAlchemyMember
 from app.schemas import Book as PydanticBook, Member as PydanticMember
+from app.models import Librarian as SQLAlchemyLibrarian
+from app.schemas import (
+    Librarian as PydanticLibrarian,
+    LibrarianCreate as PydanticLibrarianCreate,
+)
 from app.database import get_db
 
 router = APIRouter()
+
+
+@router.post("/librarians/add")
+async def add_librarian(
+    librarian: PydanticLibrarianCreate, db: Session = Depends(get_db)
+):
+    db_librarian = SQLAlchemyLibrarian(**librarian.dict())
+    db.add(db_librarian)
+    db.commit()
+    db.refresh(db_librarian)
+    return {"message": f"The librarian '{db_librarian.name}' has been added."}
+
+
+@router.delete("/librarians/remove")
+async def remove_librarian(librarian_id: int, db: Session = Depends(get_db)):
+    db_librarian = (
+        db.query(SQLAlchemyLibrarian)
+        .filter(SQLAlchemyLibrarian.librarian_id == librarian_id)
+        .first()
+    )
+    if db_librarian is None:
+        raise HTTPException(status_code=404, detail="Librarian not found")
+
+    db.delete(db_librarian)
+    db.commit()
+    return {"message": f"The librarian '{db_librarian.name}' has been removed."}
 
 
 # librarians issue and return requests bodies are empty needs update
