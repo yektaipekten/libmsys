@@ -58,24 +58,6 @@ async def return_book(book_id: int, db: Session = Depends(get_db)):
         "message": f"The book '{db_book.title}' with ID {db_book.book_id} has been returned."
     }
 
-
-@router.post("/return")
-async def return_book(book_id: int, member_id: int, db: Session = Depends(get_db)):
-    db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
-    db_member = (
-        db.query(SQLAlchemyMember)
-        .filter(SQLAlchemyMember.member_id == member_id)
-        .first()
-    )
-    if db_book is None:
-        raise HTTPException(status_code=404, detail="Book not found")
-    if db_member is None:
-        raise HTTPException(status_code=404, detail="Member not found")
-
-    db_book.is_available = True
-    db.commit()
-    db.refresh(db_book)
-
     # Add transaction
     transaction = SQLAlchemyTransaction(
         book_id=db_book.book_id, member_id=db_member.member_id, action="returned"
