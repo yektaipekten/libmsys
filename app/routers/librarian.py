@@ -12,7 +12,7 @@ from app.database import get_db
 router = APIRouter()
 
 
-@router.post("/librarians")
+@router.post("/add")
 async def add_librarian(
     librarian: PydanticLibrarianCreate, db: Session = Depends(get_db)
 ):
@@ -23,7 +23,7 @@ async def add_librarian(
     return {"message": f"The librarian '{db_librarian.name}' has been added."}
 
 
-@router.delete("/librarians/{librarian_id}")
+@router.delete("/remove")
 async def remove_librarian(librarian_id: int, db: Session = Depends(get_db)):
     db_librarian = (
         db.query(SQLAlchemyLibrarian)
@@ -38,7 +38,7 @@ async def remove_librarian(librarian_id: int, db: Session = Depends(get_db)):
     return {"message": f"The librarian '{db_librarian.name}' has been removed."}
 
 
-@router.post("/books")  # Add book to lib
+@router.post("/add")  # Add book to lib
 async def add_book(book: PydanticBook, db: Session = Depends(get_db)):
     db_book = SQLAlchemyBook(**book.dict())
     db.add(db_book)
@@ -47,7 +47,7 @@ async def add_book(book: PydanticBook, db: Session = Depends(get_db)):
     return {"message": f"The book '{db_book.title}' has been added."}
 
 
-@router.post("/books/{book_id}")  # Remove book to lib
+@router.post("/remove/{book_id}")  # Remove book to lib
 async def remove_book(book_id: int, db: Session = Depends(get_db)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:

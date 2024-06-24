@@ -11,8 +11,7 @@ from app.database import get_db
 router = APIRouter()
 
 
-# Members almost trash check again anything doesnt working
-@router.post("/borrow")
+@router.post("/{book_id}/{member_id}")
 async def borrow_book(book_id: int, member_id: int, db: Session = Depends(get_db)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     db_member = (
@@ -31,7 +30,6 @@ async def borrow_book(book_id: int, member_id: int, db: Session = Depends(get_db
     db.commit()
     db.refresh(db_book)
 
-    # Add transaction
     transaction = SQLAlchemyTransaction(
         book_id=db_book.book_id, member_id=db_member.member_id, action="borrowed"
     )
@@ -44,7 +42,7 @@ async def borrow_book(book_id: int, member_id: int, db: Session = Depends(get_db
     }
 
 
-@router.post("/return/{book_id}")
+@router.post("/{book_id}/return")
 async def return_book(book_id: int, db: Session = Depends(get_db)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:
@@ -58,7 +56,6 @@ async def return_book(book_id: int, db: Session = Depends(get_db)):
         "message": f"The book '{db_book.title}' with ID {db_book.book_id} has been returned."
     }
 
-    # Add transaction
     transaction = SQLAlchemyTransaction(
         book_id=db_book.book_id, member_id=db_member.member_id, action="returned"
     )
@@ -71,7 +68,7 @@ async def return_book(book_id: int, db: Session = Depends(get_db)):
     }
 
 
-@router.get("/borrowed_books/{member_id}")
+@router.get("/{member_id}/borrowed")
 async def show_borrowed_books(member_id: int, db: Session = Depends(get_db)):
     db_books = (
         db.query(SQLAlchemyTransaction)
@@ -89,7 +86,7 @@ async def show_borrowed_books(member_id: int, db: Session = Depends(get_db)):
     return db_books
 
 
-@router.get("/returned_books/{member_id}")
+@router.get("/{member_id}/returned")
 async def show_returned_books(member_id: int, db: Session = Depends(get_db)):
     db_books = (
         db.query(SQLAlchemyTransaction)
@@ -107,7 +104,7 @@ async def show_returned_books(member_id: int, db: Session = Depends(get_db)):
     return db_books
 
 
-@router.get("/members/{member_id}")
+@router.get("/{member_id}/info")
 async def show_member_info(member_id: int, db: Session = Depends(get_db)):
     db_member = (
         db.query(SQLAlchemyMember)
@@ -120,7 +117,7 @@ async def show_member_info(member_id: int, db: Session = Depends(get_db)):
     return db_member
 
 
-@router.get("/availability/{book_id}", response_model=PydanticBook)
+@router.get("/{book_id}", response_model=PydanticBook)
 async def check_availability(book_id: int, db: Session = Depends(get_db)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:

@@ -7,7 +7,7 @@ from app.database import get_db
 router = APIRouter()
 
 
-@router.get("/availability/{book_id}", response_model=PydanticBook)
+@router.get("/{book_id}/availability", response_model=PydanticBook)
 async def check_availability(book_id: int, db: Session = Depends(get_db)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:
@@ -24,7 +24,7 @@ async def check_availability(book_id: int, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/return/{book_id}")
+@router.post("/{book_id}/return")
 async def return_book(book_id: int, db: Session = Depends(get_db)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:
