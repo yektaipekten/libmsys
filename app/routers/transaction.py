@@ -7,13 +7,13 @@ from app.database import get_db
 router = APIRouter()
 
 
-# totally trash
-@router.get("/availability/{book_id}", response_model=PydanticTransaction)
+@router.get("/availability/{book_id}")
 async def check_availability(book_id: int, db: Session = Depends(get_db)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:
         raise HTTPException(status_code=404, detail="Book not found")
-
+    if db_book.is_available:
+        raise HTTPException(status_code=200, detail="The book is available.")
     return {
         "book_id": db_book.book_id,
         "title": db_book.title,
@@ -25,23 +25,24 @@ async def check_availability(book_id: int, db: Session = Depends(get_db)):
     }
 
 
-@router.post("/return/{book_id}", response_model=PydanticTransaction)
+@router.post("/return/{book_id}")
 async def return_book(book_id: int, db: Session = Depends(get_db)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:
         raise HTTPException(status_code=404, detail="Book not found")
 
+    if db_book.is_available:
+        raise HTTPException(
+            status_code=400, detail="The book already returned to the library."
+        )
+
     db_book.is_available = True
     db.commit()
     db.refresh(db_book)
 
-    transaction = SQLAlchemyTransaction(
-        book_id=db_book.book_id,
-        action="return",
-        message=f"The book '{db_book.title}' with ID {db_book.book_id} has been returned.",
-    )
-    db.add(transaction)
-    db.commit()
-    db.refresh(transaction)
-
-    return transaction
+    return {
+        "message": f"The book '{db_book.title}' (ID: {db_book.book_id}) has been returned.",
+        "book_id": db_book.book_id,
+        "title": db_book.title,
+        "is_available": db_book.is_available,
+    }
