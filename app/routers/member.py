@@ -6,13 +6,15 @@ from app.models import (
     Transaction as SQLAlchemyTransaction,
 )
 from app.schemas import Book as PydanticBook, Member as PydanticMember
-from app.database import get_db
+from app.database import get_db_session
 
 router = APIRouter()
 
 
 @router.post("/{book_id}/{member_id}")
-async def borrow_book(book_id: int, member_id: int, db: Session = Depends(get_db)):
+async def borrow_book(
+    book_id: int, member_id: int, db: Session = Depends(get_db_session)
+):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     db_member = (
         db.query(SQLAlchemyMember)
@@ -43,7 +45,7 @@ async def borrow_book(book_id: int, member_id: int, db: Session = Depends(get_db
 
 
 @router.post("/{book_id}/return")
-async def return_book(book_id: int, db: Session = Depends(get_db)):
+async def return_book(book_id: int, db: Session = Depends(get_db_session)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:
         raise HTTPException(status_code=404, detail="Book not found")
@@ -69,7 +71,7 @@ async def return_book(book_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{member_id}/borrowed")
-async def show_borrowed_books(member_id: int, db: Session = Depends(get_db)):
+async def show_borrowed_books(member_id: int, db: Session = Depends(get_db_session)):
     db_books = (
         db.query(SQLAlchemyTransaction)
         .filter(
@@ -87,7 +89,7 @@ async def show_borrowed_books(member_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{member_id}/returned")
-async def show_returned_books(member_id: int, db: Session = Depends(get_db)):
+async def show_returned_books(member_id: int, db: Session = Depends(get_db_session)):
     db_books = (
         db.query(SQLAlchemyTransaction)
         .filter(
@@ -105,7 +107,7 @@ async def show_returned_books(member_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{member_id}/info")
-async def show_member_info(member_id: int, db: Session = Depends(get_db)):
+async def show_member_info(member_id: int, db: Session = Depends(get_db_session)):
     db_member = (
         db.query(SQLAlchemyMember)
         .filter(SQLAlchemyMember.member_id == member_id)
@@ -118,7 +120,7 @@ async def show_member_info(member_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{book_id}", response_model=PydanticBook)
-async def check_availability(book_id: int, db: Session = Depends(get_db)):
+async def check_availability(book_id: int, db: Session = Depends(get_db_session)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:
         raise HTTPException(status_code=404, detail="Book not found")

@@ -7,14 +7,14 @@ from app.schemas import (
     Librarian as PydanticLibrarian,
     LibrarianCreate as PydanticLibrarianCreate,
 )
-from app.database import get_db
+from app.database import get_db_session
 
 router = APIRouter()
 
 
-@router.post("/add")
+@router.post("/add/librarian")
 async def add_librarian(
-    librarian: PydanticLibrarianCreate, db: Session = Depends(get_db)
+    librarian: PydanticLibrarianCreate, db: Session = Depends(get_db_session)
 ):
     db_librarian = SQLAlchemyLibrarian(**librarian.dict())
     db.add(db_librarian)
@@ -24,7 +24,7 @@ async def add_librarian(
 
 
 @router.delete("/remove")
-async def remove_librarian(librarian_id: int, db: Session = Depends(get_db)):
+async def remove_librarian(librarian_id: int, db: Session = Depends(get_db_session)):
     db_librarian = (
         db.query(SQLAlchemyLibrarian)
         .filter(SQLAlchemyLibrarian.librarian_id == librarian_id)
@@ -39,7 +39,7 @@ async def remove_librarian(librarian_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/add")  # Add book to lib
-async def add_book(book: PydanticBook, db: Session = Depends(get_db)):
+async def add_book(book: PydanticBook, db: Session = Depends(get_db_session)):
     db_book = SQLAlchemyBook(**book.dict())
     db.add(db_book)
     db.commit()
@@ -48,7 +48,7 @@ async def add_book(book: PydanticBook, db: Session = Depends(get_db)):
 
 
 @router.post("/remove/{book_id}")  # Remove book to lib
-async def remove_book(book_id: int, db: Session = Depends(get_db)):
+async def remove_book(book_id: int, db: Session = Depends(get_db_session)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:
         raise HTTPException(status_code=404, detail="Book not found")
@@ -59,7 +59,7 @@ async def remove_book(book_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/members")
-async def add_member(member: PydanticMember, db: Session = Depends(get_db)):
+async def add_member(member: PydanticMember, db: Session = Depends(get_db_session)):
     db_member = SQLAlchemyMember(**member.dict())
     db.add(db_member)
     db.commit()
@@ -68,7 +68,7 @@ async def add_member(member: PydanticMember, db: Session = Depends(get_db)):
 
 
 @router.delete("/members/{member_id}")
-async def remove_member(member_id: int, db: Session = Depends(get_db)):
+async def remove_member(member_id: int, db: Session = Depends(get_db_session)):
     db_member = (
         db.query(SQLAlchemyMember)
         .filter(SQLAlchemyMember.member_id == member_id)
@@ -83,7 +83,7 @@ async def remove_member(member_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/members/{member_id}")
-async def show_member_info(member_id: int, db: Session = Depends(get_db)):
+async def show_member_info(member_id: int, db: Session = Depends(get_db_session)):
     db_member = (
         db.query(SQLAlchemyMember)
         .filter(SQLAlchemyMember.member_id == member_id)
@@ -96,7 +96,9 @@ async def show_member_info(member_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/books/{book_id}/issue")
-async def issue_book(book_id: int, member_id: int, db: Session = Depends(get_db)):
+async def issue_book(
+    book_id: int, member_id: int, db: Session = Depends(get_db_session)
+):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     db_member = (
         db.query(SQLAlchemyMember)
@@ -121,7 +123,9 @@ async def issue_book(book_id: int, member_id: int, db: Session = Depends(get_db)
 
 
 @router.post("/books/{book_id}/return")
-async def return_book(book_id: int, member_id: int, db: Session = Depends(get_db)):
+async def return_book(
+    book_id: int, member_id: int, db: Session = Depends(get_db_session)
+):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     db_member = (
         db.query(SQLAlchemyMember)
