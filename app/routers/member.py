@@ -5,7 +5,7 @@ from app.models import (
     Member as SQLAlchemyMember,
     Transaction as SQLAlchemyTransaction,
 )
-from app.schemas import Book as PydanticBook, Member as PydanticMember
+from app.LibrarySchema import Book as PydanticBook, Member as PydanticMember
 from app.database import get_db_session
 
 router = APIRouter()

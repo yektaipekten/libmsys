@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
+from . import models, LibrarySchema
 from datetime import datetime
 
 
-def create_book(db: Session, book: schemas.BookCreate, library_id: int):
+def create_book(db: Session, book: LibrarySchema.BookCreate, library_id: int):
     book.model_dump(exclude={"library_id"})
     db_book = models.Book(**book.model_dump, library_id=library_id)
     db.add(db_book)
@@ -21,7 +21,7 @@ def delete_book(db: Session, book_id: int):
     db.commit()
 
 
-def create_member(db: Session, member: schemas.MemberCreate, library_id: int):
+def create_member(db: Session, member: LibrarySchema.MemberCreate, library_id: int):
     member_data = member.dict()
     member_data.pop("library_id", None)
     db_member = models.Member(**member_data, library_id=library_id)
@@ -76,7 +76,7 @@ def get_libraries(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Library).offset(skip).limit(limit).all()
 
 
-def create_library(db: Session, library: schemas.LibraryCreate):
+def create_library(db: Session, library: LibrarySchema.LibraryCreate):
     db_library = models.Library(**library.dict())
     db.add(db_library)
     db.commit()

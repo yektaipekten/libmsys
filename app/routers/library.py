@@ -1,26 +1,26 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from .. import crud, models, schemas, database
+from .. import crud, models, LibrarySchema, database
 
 router = APIRouter()
 
 
-@router.post("/create/", response_model=schemas.Library)
+@router.post("/create/", response_model=LibrarySchema.Library)
 def create_library(
-    library: schemas.LibraryCreate, db: Session = Depends(database.get_db_session)
+    library: LibrarySchema.LibraryCreate, db: Session = Depends(database.get_db_session)
 ):
     return crud.create_library(db=db, library=library)
 
 
-@router.get("/read/", response_model=List[schemas.Library])
+@router.get("/read/", response_model=List[LibrarySchema.Library])
 def read_libraries(
     skip: int = 0, limit: int = 20, db: Session = Depends(database.get_db_session)
 ):
     return crud.get_libraries(db, skip=skip, limit=limit)
 
 
-@router.get("/{library_id}/read", response_model=schemas.Library)
+@router.get("/{library_id}/read", response_model=LibrarySchema.Library)
 def read_library(library_id: int, db: Session = Depends(database.get_db_session)):
     db_library = crud.get_library(db, library_id=library_id)
     if db_library is None:
@@ -28,10 +28,10 @@ def read_library(library_id: int, db: Session = Depends(database.get_db_session)
     return db_library
 
 
-@router.post("/{library_id}/add", response_model=schemas.Book)
+@router.post("/{library_id}/add", response_model=LibrarySchema.Book)
 def add_book(
     library_id: int,
-    book: schemas.BookCreate,
+    book: LibrarySchema.BookCreate,
     db: Session = Depends(database.get_db_session),
 ):
     db_library = crud.get_library(db, library_id=library_id)
@@ -53,10 +53,10 @@ def remove_book(
     return {"message": "Book removed"}
 
 
-@router.post("/{library_id}/register/", response_model=schemas.Member)
+@router.post("/{library_id}/register/", response_model=LibrarySchema.Member)
 def register_member(
     library_id: int,
-    member: schemas.MemberCreate,
+    member: LibrarySchema.MemberCreate,
     db: Session = Depends(database.get_db_session),
 ):
     db_library = crud.get_library(db, library_id=library_id)
@@ -65,7 +65,7 @@ def register_member(
     return crud.create_member(db=db, member=member, library_id=library_id)
 
 
-@router.post("/{book_id}/issue", response_model=schemas.Transaction)
+@router.post("/{book_id}/issue", response_model=LibrarySchema.Transaction)
 def issue_book(
     library_id: int,
     book_id: int,
@@ -81,7 +81,7 @@ def issue_book(
     return crud.issue_book(db=db, book_id=book_id, member_id=member_id)
 
 
-@router.post("/{book_id}/return", response_model=schemas.Transaction)
+@router.post("/{book_id}/return", response_model=LibrarySchema.Transaction)
 def return_book(
     library_id: int,
     book_id: int,
