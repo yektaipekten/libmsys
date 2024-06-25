@@ -4,8 +4,9 @@ from datetime import datetime
 
 
 def create_book(db: Session, book: schemas.BookCreate, library_id: int):
-    book.model_dump(exclude={"library_id"})
-    db_book = models.Book(**book.model_dump, library_id=library_id)
+    book_data = book.dict()
+    book_data.pop("library_id", None)
+    db_book = models.Book(**book_data, library_id=library_id)
     db.add(db_book)
     db.commit()
     db.refresh(db_book)
