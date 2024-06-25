@@ -3,6 +3,11 @@ from typing import List, Optional
 from datetime import datetime
 
 
+class Config:
+    from_attributes = True
+    orm_mode = True
+
+
 class LibraryBase(BaseModel):
     name: str
     address: str
