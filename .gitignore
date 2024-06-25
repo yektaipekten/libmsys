@@ -171,3 +171,4 @@ nenv/
 .vscode/
 
 *.sql
+MySQL_Local.session.sql
