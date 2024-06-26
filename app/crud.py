@@ -1,11 +1,10 @@
 from sqlalchemy.orm import Session
-from . import models, LibrarySchema
-from datetime import datetime
+from . import models, schemas
 
 
-def create_book(db: Session, book: LibrarySchema.BookCreate, library_id: int):
-    book.model_dump(exclude={"library_id"})
-    db_book = models.Book(**book.model_dump, library_id=library_id)
+# Book Operations
+def create_book(db: Session, book: schemas.BookCreate):
+    db_book = models.Book(**book.dict())
     db.add(db_book)
     db.commit()
     db.refresh(db_book)
@@ -13,18 +12,83 @@ def create_book(db: Session, book: LibrarySchema.BookCreate, library_id: int):
 
 
 def get_book(db: Session, book_id: int):
-    return db.query(models.Book).filter(models.Book.book_id == book_id).first()
+    return db.query(models.Book).filter(models.Book.id == book_id).first()
+
+
+def get_books(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Book).offset(skip).limit(limit).all()
+
+
+def update_book(db: Session, book_id: int, book: schemas.BookUpdate):
+    db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
+    if db_book:
+        for key, value in book.dict(exclude_unset=True).items():
+            setattr(db_book, key, value)
+        db.commit()
+        db.refresh(db_book)
+    return db_book
 
 
 def delete_book(db: Session, book_id: int):
-    db.query(models.Book).filter(models.Book.book_id == book_id).delete()
+    db_book = db.query(models.Book).filter(models.Book.id == book_id).first()
+    if db_book:
+        db.delete(db_book)
+        db.commit()
+    return db_book
+
+
+# Transaction Operations
+def create_transaction(db: Session, transaction: schemas.TransactionCreate):
+    db_transaction = models.Transaction(**transaction.dict())
+    db.add(db_transaction)
     db.commit()
+    db.refresh(db_transaction)
+    return db_transaction
 
 
-def create_member(db: Session, member: LibrarySchema.MemberCreate, library_id: int):
-    member_data = member.dict()
-    member_data.pop("library_id", None)
-    db_member = models.Member(**member_data, library_id=library_id)
+def get_transaction(db: Session, transaction_id: int):
+    return (
+        db.query(models.Transaction)
+        .filter(models.Transaction.id == transaction_id)
+        .first()
+    )
+
+
+def get_transactions(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Transaction).offset(skip).limit(limit).all()
+
+
+def update_transaction(
+    db: Session, transaction_id: int, transaction: schemas.TransactionUpdate
+):
+    db_transaction = (
+        db.query(models.Transaction)
+        .filter(models.Transaction.id == transaction_id)
+        .first()
+    )
+    if db_transaction:
+        for key, value in transaction.dict(exclude_unset=True).items():
+            setattr(db_transaction, key, value)
+        db.commit()
+        db.refresh(db_transaction)
+    return db_transaction
+
+
+def delete_transaction(db: Session, transaction_id: int):
+    db_transaction = (
+        db.query(models.Transaction)
+        .filter(models.Transaction.id == transaction_id)
+        .first()
+    )
+    if db_transaction:
+        db.delete(db_transaction)
+        db.commit()
+    return db_transaction
+
+
+# Member Operations
+def create_member(db: Session, member: schemas.MemberCreate):
+    db_member = models.Member(**member.dict())
     db.add(db_member)
     db.commit()
     db.refresh(db_member)
@@ -32,53 +96,69 @@ def create_member(db: Session, member: LibrarySchema.MemberCreate, library_id: i
 
 
 def get_member(db: Session, member_id: int):
-    return db.query(models.Member).filter(models.Member.member_id == member_id).first()
+    return db.query(models.Member).filter(models.Member.id == member_id).first()
 
 
-def issue_book(db: Session, book_id: int, member_id: int):
-    db_transaction = models.Transaction(book_id=book_id, member_id=member_id)
-    db.query(models.Book).filter(models.Book.book_id == book_id).update(
-        {"is_available": False}
-    )
-    db.add(db_transaction)
-    db.commit()
-    db.refresh(db_transaction)
-    return db_transaction
+def get_members(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Member).offset(skip).limit(limit).all()
 
 
-def return_book(db: Session, book_id: int, member_id: int):
-    db_transaction = (
-        db.query(models.Transaction)
-        .filter(
-            models.Transaction.book_id == book_id,
-            models.Transaction.member_id == member_id,
-        )
-        .order_by(models.Transaction.issue_date.desc())
-        .first()
-    )
-    if db_transaction:
-        db_transaction.return_date = datetime.utcnow()
-        db.query(models.Book).filter(models.Book.book_id == book_id).update(
-            {"is_available": True}
-        )
+def update_member(db: Session, member_id: int, member: schemas.MemberUpdate):
+    db_member = db.query(models.Member).filter(models.Member.id == member_id).first()
+    if db_member:
+        for key, value in member.dict(exclude_unset=True).items():
+            setattr(db_member, key, value)
         db.commit()
-        db.refresh(db_transaction)
-    return db_transaction
+        db.refresh(db_member)
+    return db_member
 
 
-def get_library(db: Session, library_id: int):
+def delete_member(db: Session, member_id: int):
+    db_member = db.query(models.Member).filter(models.Member.id == member_id).first()
+    if db_member:
+        db.delete(db_member)
+        db.commit()
+    return db_member
+
+
+# Librarian Operations
+def create_librarian(db: Session, librarian: schemas.LibrarianCreate):
+    db_librarian = models.Librarian(**librarian.dict())
+    db.add(db_librarian)
+    db.commit()
+    db.refresh(db_librarian)
+    return db_librarian
+
+
+def get_librarian(db: Session, librarian_id: int):
     return (
-        db.query(models.Library).filter(models.Library.library_id == library_id).first()
+        db.query(models.Librarian).filter(models.Librarian.id == librarian_id).first()
     )
 
 
-def get_libraries(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(models.Library).offset(skip).limit(limit).all()
+def get_librarians(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Librarian).offset(skip).limit(limit).all()
 
 
-def create_library(db: Session, library: LibrarySchema.LibraryCreate):
-    db_library = models.Library(**library.dict())
-    db.add(db_library)
-    db.commit()
-    db.refresh(db_library)
-    return db_library
+def update_librarian(
+    db: Session, librarian_id: int, librarian: schemas.LibrarianUpdate
+):
+    db_librarian = (
+        db.query(models.Librarian).filter(models.Librarian.id == librarian_id).first()
+    )
+    if db_librarian:
+        for key, value in librarian.dict(exclude_unset=True).items():
+            setattr(db_librarian, key, value)
+        db.commit()
+        db.refresh(db_librarian)
+    return db_librarian
+
+
+def delete_librarian(db: Session, librarian_id: int):
+    db_librarian = (
+        db.query(models.Librarian).filter(models.Librarian.id == librarian_id).first()
+    )
+    if db_librarian:
+        db.delete(db_librarian)
+        db.commit()
+    return db_librarian
