@@ -169,3 +169,5 @@ nenv/
 
 # Ignore Visual Studio Code configuration files
 .vscode/
+
+MySQL Local.session.sql
