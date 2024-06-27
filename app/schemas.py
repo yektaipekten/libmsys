@@ -1,39 +1,8 @@
 from pydantic import BaseModel
-from typing import Optional, List
-from datetime import date
+from typing import List, Optional
+from datetime import datetime
 
 
-# Book Schemas
-class BookBase(BaseModel):
-    title: str
-    author: str
-    ISBN: str
-    publication_year: int
-    is_available: bool
-    library_id: int
-
-
-class BookCreate(BookBase):
-    pass
-
-
-class BookUpdate(BookBase):
-    title: Optional[str] = None
-    author: Optional[str] = None
-    ISBN: Optional[str] = None
-    publication_year: Optional[int] = None
-    is_available: Optional[bool] = None
-    library_id: Optional[int] = None
-
-
-class Book(BookBase):
-    id: int
-
-    class Config:
-        orm_mode: True
-
-
-# Library Schemas
 class LibraryBase(BaseModel):
     name: str
     address: str
@@ -43,83 +12,85 @@ class LibraryCreate(LibraryBase):
     pass
 
 
-class LibraryUpdate(LibraryBase):
-    name: Optional[str] = None
-    address: Optional[str] = None
-
-
 class Library(LibraryBase):
-    id: int
+    library_id: int
+    books: List["Book"] = []
+    members: List["Member"] = []
+    librarians: List["Librarian"] = []
 
     class Config:
-        orm_mode: True
+        from_attributes = True
 
 
-# Member Schemas
-class MemberBase(BaseModel):
-    name: str
-    email: str
+class BookBase(BaseModel):
+    title: str
+    author: str
+    ISBN: str
+    publication_year: int
+    is_available: bool
 
 
-class MemberCreate(MemberBase):
-    pass
-
-
-class MemberUpdate(MemberBase):
-    name: Optional[str] = None
-    email: Optional[str] = None
-
-
-class Member(MemberBase):
-    id: int
-
-    class Config:
-        orm_mode: True
-
-
-# Librarian Schemas
-class LibrarianBase(BaseModel):
-    name: str
+class BookCreate(BookBase):
     library_id: int
 
 
+class Book(BookBase):
+    book_id: int
+    library_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class MemberBase(BaseModel):
+    name: str
+    address: str
+    phone_number: str
+
+
+class MemberCreate(MemberBase):
+    library_id: int
+
+
+class Member(MemberBase):
+    member_id: int
+    library_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class LibrarianBase(BaseModel):
+    name: str
+    address: str
+    phone_number: str
+
+
 class LibrarianCreate(LibrarianBase):
-    pass
-
-
-class LibrarianUpdate(LibrarianBase):
-    name: Optional[str] = None
-    library_id: Optional[int] = None
+    library_id: int
 
 
 class Librarian(LibrarianBase):
-    id: int
+    librarian_id: int
+    library_id: int
 
     class Config:
-        orm_mode: True
+        from_attributes = True
 
 
-# Transaction Schemas
 class TransactionBase(BaseModel):
     book_id: int
     member_id: int
-    borrow_date: date
-    return_date: Optional[date]
+    issue_date: datetime
+    return_date: Optional[datetime] = None
 
 
 class TransactionCreate(TransactionBase):
     pass
 
 
-class TransactionUpdate(TransactionBase):
-    book_id: Optional[int] = None
-    member_id: Optional[int] = None
-    borrow_date: Optional[date] = None
-    return_date: Optional[date] = None
-
-
 class Transaction(TransactionBase):
-    id: int
+    transaction_id: int
 
     class Config:
-        orm_mode: True
+        from_attributes = True

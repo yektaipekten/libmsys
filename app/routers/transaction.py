@@ -1,53 +1,48 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from .. import crud, schemas
-from ..database import get_db_session
+from app.models import Book as SQLAlchemyBook, Transaction as SQLAlchemyTransaction
+from app.schemas import Transaction as PydanticTransaction
+from app.database import get_db
 
-router = APIRouter(
-    prefix="/transactions",
-    tags=["transactions"],
-    responses={404: {"description": "Not found"}},
-)
+router = APIRouter()
 
 
-@router.post("/", response_model=schemas.Transaction)
-def create_transaction(
-    transaction: schemas.TransactionCreate, db: Session = Depends(get_db_session)
-):
-    return crud.create_transaction(db, transaction)
+@router.get("/availability/{book_id}")
+async def check_availability(book_id: int, db: Session = Depends(get_db)):
+    db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
+    if db_book is None:
+        raise HTTPException(status_code=404, detail="Book not found")
+    if db_book.is_available:
+        raise HTTPException(status_code=200, detail="The book is available.")
+    return {
+        "book_id": db_book.book_id,
+        "title": db_book.title,
+        "author": db_book.author,
+        "ISBN": db_book.ISBN,
+        "publication_year": db_book.publication_year,
+        "library_id": db_book.library_id,
+        "is_available": db_book.is_available,
+    }
 
 
-@router.get("/{transaction_id}", response_model=schemas.Transaction)
-def read_transaction(transaction_id: int, db: Session = Depends(get_db_session)):
-    db_transaction = crud.get_transaction(db, transaction_id)
-    if db_transaction is None:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-    return db_transaction
+@router.post("/return/{book_id}")
+async def return_book(book_id: int, db: Session = Depends(get_db)):
+    db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
+    if db_book is None:
+        raise HTTPException(status_code=404, detail="Book not found")
 
+    if db_book.is_available:
+        raise HTTPException(
+            status_code=400, detail="The book already returned to the library."
+        )
 
-@router.get("/", response_model=list[schemas.Transaction])
-def read_transactions(
-    skip: int = 0, limit: int = 10, db: Session = Depends(get_db_session)
-):
-    transactions = crud.get_transactions(db, skip=skip, limit=limit)
-    return transactions
+    db_book.is_available = True
+    db.commit()
+    db.refresh(db_book)
 
-
-@router.put("/{transaction_id}", response_model=schemas.Transaction)
-def update_transaction(
-    transaction_id: int,
-    transaction: schemas.TransactionUpdate,
-    db: Session = Depends(get_db_session),
-):
-    db_transaction = crud.update_transaction(db, transaction_id, transaction)
-    if db_transaction is None:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-    return db_transaction
-
-
-@router.delete("/{transaction_id}", response_model=schemas.Transaction)
-def delete_transaction(transaction_id: int, db: Session = Depends(get_db_session)):
-    db_transaction = crud.delete_transaction(db, transaction_id)
-    if db_transaction is None:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-    return db_transaction
+    return {
+        "message": f"The book '{db_book.title}' (ID: {db_book.book_id}) has been returned.",
+        "book_id": db_book.book_id,
+        "title": db_book.title,
+        "is_available": db_book.is_available,
+    }

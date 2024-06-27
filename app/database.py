@@ -7,14 +7,12 @@ SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://root:ipekten@localhost/sample"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def get_db_session():
+def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-
-# Extend functionality
