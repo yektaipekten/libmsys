@@ -62,6 +62,7 @@ class Transaction(Base):
     transaction_id = Column(Integer, primary_key=True, index=True)
     book_id = Column(Integer, ForeignKey("books.book_id"))
     member_id = Column(Integer, ForeignKey("members.member_id"))
+    action = Column(String, nullable=False)
     issue_date = Column(DateTime, default=datetime.utcnow)
     return_date = Column(DateTime, nullable=True)
 
