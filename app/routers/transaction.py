@@ -2,13 +2,13 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.models import Book as SQLAlchemyBook, Transaction as SQLAlchemyTransaction
 from app.schemas import Transaction as PydanticTransaction
-from app.database import get_db
+from app.database import get_db_session
 
 router = APIRouter()
 
 
 @router.get("/availability/{book_id}")
-async def check_availability(book_id: int, db: Session = Depends(get_db)):
+async def check_availability(book_id: int, db: Session = Depends(get_db_session)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:
         raise HTTPException(status_code=404, detail="Book not found")
@@ -26,7 +26,7 @@ async def check_availability(book_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/return/{book_id}")
-async def return_book(book_id: int, db: Session = Depends(get_db)):
+async def return_book(book_id: int, db: Session = Depends(get_db_session)):
     db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
     if db_book is None:
         raise HTTPException(status_code=404, detail="Book not found")

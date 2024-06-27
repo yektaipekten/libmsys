@@ -10,7 +10,7 @@ Base = declarative_base()
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def get_db():
+def get_db_session():
     db = SessionLocal()
     try:
         yield db
