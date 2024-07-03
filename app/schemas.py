@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -68,6 +68,10 @@ class LibrarianBase(BaseModel):
 
 class LibrarianCreate(LibrarianBase):
     library_id: int
+
+
+class LibrarianUpdate(LibrarianBase):
+    pass
 
 
 class Librarian(LibrarianBase):

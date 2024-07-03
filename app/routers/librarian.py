@@ -31,16 +31,17 @@ async def add_book(book: PydanticBook, db: Session = Depends(get_db_session)):
 
 
 @router.delete("/books/remove/{book_id}")  # Remove book from lib
-async def remove_book(book_id: int, db: Session = Depends(get_db_session)):
-    db_book = crud.remove_book(db, book_id)
-    if db_book is None:
+async def delete_book(book_id: int, db: Session = Depends(get_db_session)):
+    db_book = crud.delete_book(db, book_id)
+    if db_book:
+        return {"message": f"The book '{db_book.title}' has been deleted."}
+    else:
         raise HTTPException(status_code=404, detail="Book not found")
-    return {"message": f"The book '{db_book.title}' has been removed."}
 
 
 @router.post("/members/add")
-async def add_member(member: PydanticMember, db: Session = Depends(get_db_session)):
-    db_member = crud.add_member(db, member)
+async def create_member(member: PydanticMember, db: Session = Depends(get_db_session)):
+    db_member = crud.create_member(db, member)
     return {"message": f"The member '{db_member.name}' has been added."}
 
 
