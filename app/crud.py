@@ -37,6 +37,8 @@ get_library = crud_library.get_library
 get_libraries = crud_library.get_libraries
 create_library = crud_library.create_library
 
+# TODO: buna gerek yok, lazım olduğu yerde ilgili yerden import edilmesi daha sağlıklı
+
 # transaction
 issue_book = crud_transaction.issue_book
 return_book = crud_transaction.return_book
