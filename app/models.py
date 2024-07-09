@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Float
 from sqlalchemy.orm import relationship
 from .database import Base
 from datetime import datetime
@@ -21,11 +21,18 @@ class Book(Base):
 
     book_id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), index=True)
-    author = Column(String(255))
-    ISBN = Column(String(255))
+    author = Column(String(255), index=True)
+    ISBN = Column(String(255), index=True)
     publication_year = Column(Integer)
-    is_available = Column(Boolean, default=True)
     library_id = Column(Integer, ForeignKey("libraries.library_id"))
+    is_available = Column(Boolean, default=True)
+    average_rating = Column(Float, nullable=True)
+    ratings_count = Column(Integer, nullable=True)
+    language = Column(String(255), nullable=True)
+    page_count = Column(Integer, nullable=True)
+    description = Column(String(255), nullable=True)
+    publisher = Column(String(255), nullable=True)
+    categories = Column(String(255), nullable=True)
 
     library = relationship("Library", back_populates="books")
     transactions = relationship("Transaction", back_populates="book")

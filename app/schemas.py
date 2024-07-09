@@ -24,14 +24,22 @@ class Library(LibraryBase):
 
 class BookBase(BaseModel):
     title: str
-    author: str
-    ISBN: str
-    publication_year: int
+    author: Optional[str] = None
+    ISBN: Optional[str] = None
+    publication_year: Optional[int] = None
+    library_id: int
     is_available: bool
+    average_rating: Optional[float] = None
+    ratings_count: Optional[int] = None
+    language: Optional[str] = None
+    page_count: Optional[int] = None
+    description: Optional[str] = None
+    publisher: Optional[str] = None
+    categories: Optional[str] = None
 
 
 class BookCreate(BookBase):
-    library_id: int
+    pass
 
 
 class Book(BookBase):

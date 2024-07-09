@@ -1,7 +1,32 @@
 from sqlalchemy.orm import Session
 from .. import models, schemas
 
+
 # Book CRUD Operations
+def insert_book(db: Session, book: schemas.BookCreate):
+    try:
+        db_book = models.Book(
+            title=book.title,
+            author=book.author,
+            ISBN=book.ISBN,
+            publication_year=book.publication_year,
+            library_id=book.library_id,
+            is_available=book.is_available,
+            average_rating=book.average_rating,
+            ratings_count=book.ratings_count,
+            language=book.language,
+            page_count=book.page_count,
+            description=book.description,
+            publisher=book.publisher,
+            categories=book.categories,
+        )
+        db.add(db_book)
+        db.commit()
+        db.refresh(db_book)
+        return db_book
+    except Exception as e:
+        db.rollback()
+        raise e
 
 
 def add_book(db: Session, book: schemas.BookCreate):
