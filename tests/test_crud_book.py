@@ -5,10 +5,8 @@ from app import models, schemas
 from app.actions import crud_book, crud_library
 from app.database import Base
 
-# Use an in-memory SQLite database for testing
-SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://root:ipekten@localhost/sample_test"
+SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://root:ipekten@localhost/sample"
 
-# Create an engine and initialize tables
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
@@ -25,18 +23,17 @@ def db():
 
 
 def test_create_book(db):
-    # Add a library first
-    library_data = schemas.LibraryCreate(name="Test Library")
+    library_data = schemas.LibraryCreate(name="Test Library", address="123 Test St")
     new_library = crud_library.add_library(db, library_data)
     library_id = new_library.library_id
 
-    # Create a book under the library
     book_data = schemas.BookCreate(
         title="Test Book",
         author="Author",
-        ISBN="1234567890",
+        ISNB="1234567890",
         publication_year=2020,
         is_available=True,
+        library_id=library_id,
     )
     new_book = crud_book.create_book(db, book_data, library_id)
     assert new_book.title == "Test Book"

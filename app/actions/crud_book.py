@@ -38,7 +38,14 @@ def add_book(db: Session, book: schemas.BookCreate):
 
 
 def create_book(db: Session, book: schemas.BookCreate, library_id: int):
-    db_book = models.Book(**book.dict(), library_id=library_id)
+    db_book = models.Book(
+        title=book.title,
+        author=book.author,
+        ISBN=book.ISBN,
+        publication_year=book.publication_year,
+        library_id=library_id,
+        is_available=book.is_available,
+    )
     db.add(db_book)
     db.commit()
     db.refresh(db_book)
@@ -65,3 +72,7 @@ def return_book_availability(db: Session, book_id: int):
         db.commit()
         db.refresh(db_book)
     return db_book
+
+
+def get_all_books(db: Session):
+    return db.query(models.Book).all()

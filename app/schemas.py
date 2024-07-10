@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 
@@ -36,6 +36,8 @@ class BookBase(BaseModel):
     description: Optional[str] = None
     publisher: Optional[str] = None
     categories: Optional[str] = None
+    library_id: int
+    is_available: bool
 
 
 class BookCreate(BookBase):
@@ -103,6 +105,21 @@ class TransactionCreate(TransactionBase):
 
 class Transaction(TransactionBase):
     transaction_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class BookRecommendation(BaseModel):
+    book_id: int
+    title: str
+    author: str
+    publication_year: int
+    is_available: bool
+    average_rating: float
+    language: str
+    page_count: int
+    categories: str
 
     class Config:
         from_attributes = True

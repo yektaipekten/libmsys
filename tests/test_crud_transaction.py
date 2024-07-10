@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.database import SessionLocal, engine
-from app import models, schemas, crud_transaction
+from app import models, schemas
+from app.actions import crud_transaction
 
 import pytest
 
 
-# Setup and Teardown
 @pytest.fixture(scope="module")
 def db_session():
     """
@@ -23,8 +23,6 @@ def setup_and_teardown(db_session):
     Fixture for setting up and tearing down the test database.
     """
     models.Base.metadata.create_all(bind=engine)
-    yield
-    models.Base.metadata.drop_all(bind=engine)
 
     library = models.Library(name="Test Library", address="123 Library St")
     db_session.add(library)
@@ -34,7 +32,7 @@ def setup_and_teardown(db_session):
     book = models.Book(
         title="Test Book",
         author="Author A",
-        isbn="1234567890",
+        ISBN="1234567890",
         library_id=library.library_id,
         is_available=True,
     )
@@ -49,13 +47,20 @@ def setup_and_teardown(db_session):
     db_session.commit()
     db_session.refresh(member)
 
+    yield
 
-# Unit Tests
+    models.Base.metadata.drop_all(bind=engine)
 
 
-def test_issue_book(db_session):
-    book_id = 1
-    member_id = 1
+def test_issue_book(db_session: Session):
+    book_id = db_session.query(models.Book).filter_by(ISNB="1234567890").first().book_id
+    member_id = (
+        db_session.query(models.Member)
+        .filter_by(email="john.doe@example.com")
+        .first()
+        .member_id
+    )
+
     transaction = crud_transaction.issue_book(db_session, book_id, member_id)
     assert transaction.book_id == book_id
     assert transaction.member_id == member_id
@@ -67,8 +72,9 @@ def test_issue_book(db_session):
     )
 
 
-def test_return_book(db_session):
-    book_id = 1
+def test_return_book(db_session: Session):
+    book_id = db_session.query(models.Book).filter_by(ISNB="1234567890").first().book_id
+
     transaction = crud_transaction.return_book(db_session, book_id)
     assert transaction.book_id == book_id
     assert transaction.return_date is not None
@@ -80,11 +86,11 @@ def test_return_book(db_session):
     )
 
 
-def test_borrow_book(db_session):
+def test_borrow_book(db_session: Session):
     new_book = models.Book(
         title="Another Test Book",
         author="Author B",
-        isbn="0987654321",
+        ISNB="0987654321",
         library_id=1,
         is_available=True,
     )
@@ -115,8 +121,13 @@ def test_borrow_book(db_session):
     assert error == "Book is already borrowed"
 
 
-def test_show_borrowed_books(db_session):
-    member_id = 1
+def test_show_borrowed_books(db_session: Session):
+    member_id = (
+        db_session.query(models.Member)
+        .filter_by(email="john.doe@example.com")
+        .first()
+        .member_id
+    )
     borrowed_books = crud_transaction.show_borrowed_books(db_session, member_id)
     assert len(borrowed_books) > 0
     for transaction in borrowed_books:
@@ -124,8 +135,13 @@ def test_show_borrowed_books(db_session):
         assert transaction.action == "borrowed"
 
 
-def test_show_returned_books(db_session):
-    member_id = 1
+def test_show_returned_books(db_session: Session):
+    member_id = (
+        db_session.query(models.Member)
+        .filter_by(email="john.doe@example.com")
+        .first()
+        .member_id
+    )
     returned_books = crud_transaction.show_returned_books(db_session, member_id)
     assert len(returned_books) > 0
     for transaction in returned_books:

@@ -1,10 +1,10 @@
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from app.database import Base, get_db_session
+from sqlalchemy.orm import sessionmaker, Session
+from app.database import Base
 from app.models import Library, Book, Member, Transaction
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://root:ipekten@localhost/sample"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
@@ -32,7 +32,7 @@ def setup_test_data(db_session: Session):
     book = Book(
         title="Test Book",
         author="Author A",
-        isbn="1234567890",
+        ISBN="1234567890",
         library_id=library.library_id,
         is_available=True,
     )

@@ -3,6 +3,10 @@ from sqlalchemy.orm import Session
 from app.schemas import Book as PydanticBook, Member as PydanticMember
 from app.schemas import LibrarianCreate as PydanticLibrarianCreate
 from app.database import get_db_session
+import numpy
+import sklearn
+import pytest
+from app.actions.crud_librarian import add_librarian
 from app import crud
 
 router = APIRouter()
@@ -12,7 +16,7 @@ router = APIRouter()
 async def add_librarian(
     librarian: PydanticLibrarianCreate, db: Session = Depends(get_db_session)
 ):
-    db_librarian = crud.add_librarian(db, librarian)
+    db_librarian = add_librarian(db, librarian)
     return {"message": f"The librarian '{db_librarian.name}' has been added."}
 
 
