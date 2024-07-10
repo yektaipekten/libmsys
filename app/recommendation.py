@@ -4,6 +4,7 @@ from sklearn.metrics.pairwise import linear_kernel
 from sqlalchemy.orm import Session
 from .models import Book
 from . import models
+import numpy as np
 
 
 def get_book_data(db: Session):
@@ -151,6 +152,8 @@ def filtered_recommendations(category: str, language: str, title: str, db: Sessi
             for book in books
         ]
     )
+
+    books_df = books_df.replace({np.nan: None})
 
     recommendations_df = books_df.sort_values(
         by="average_rating", ascending=False
