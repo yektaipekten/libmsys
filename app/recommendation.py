@@ -4,6 +4,7 @@ from sklearn.metrics.pairwise import linear_kernel
 from sqlalchemy.orm import Session
 from .models import Book
 from . import models
+from .actions import crud_book
 import numpy as np
 
 
@@ -160,3 +161,61 @@ def filtered_recommendations(category: str, language: str, title: str, db: Sessi
     ).head(10)
 
     return recommendations_df.to_dict("records")
+
+
+def member_recommendations(member_id: int, db: Session):
+    borrowed_books = crud_book.get_borrowed_books_by_member(db, member_id)
+
+    if not borrowed_books:
+        return []
+
+    borrowed_book_ids = [borrowed.book_id for borrowed in borrowed_books]
+
+    books = db.query(Book).all()
+    if not books:
+        raise ValueError("No books available.")
+
+    books_df = pd.DataFrame(
+        [
+            {
+                "book_id": book.book_id,
+                "title": book.title,
+                "author": book.author,
+                "categories": book.categories,
+            }
+            for book in books
+        ]
+    )
+
+    books_df["combined_features"] = (
+        books_df["title"].fillna("")
+        + " "
+        + books_df["author"].fillna("")
+        + " "
+        + books_df["categories"].fillna("")
+    )
+
+    tfidf_vectorizer = TfidfVectorizer(stop_words="english")
+    tfidf_matrix = tfidf_vectorizer.fit_transform(books_df["combined_features"])
+
+    cosine_similarities = linear_kernel(tfidf_matrix, tfidf_matrix)
+
+    recommendations = []
+    for book_id in borrowed_book_ids:
+        book_idx = books_df.index[books_df["book_id"] == book_id].tolist()[0]
+        similar_indices = cosine_similarities[book_idx].argsort()[:-11:-1]
+        similar_items = [
+            (books_df.iloc[i]["book_id"], cosine_similarities[book_idx][i])
+            for i in similar_indices
+        ]
+
+        recommendations.extend(similar_items)
+
+    recommendations = list(set(recommendations))
+    recommendations = sorted(recommendations, key=lambda x: x[1], reverse=True)
+
+    recommended_books = [
+        rec[0] for rec in recommendations if rec[0] not in borrowed_book_ids
+    ][:10]
+
+    return books_df[books_df["book_id"].isin(recommended_books)].to_dict("records")

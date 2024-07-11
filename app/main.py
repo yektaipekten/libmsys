@@ -12,6 +12,4 @@ app.include_router(librarian.router, prefix="/librarians", tags=["librarians"])
 app.include_router(member.router, prefix="/members", tags=["members"])
 app.include_router(library.router, prefix="/libraries", tags=["libraries"])
 app.include_router(transaction.router, prefix="/transactions", tags=["transactions"])
-app.include_router(
-    recommendation.router, prefix="/recommendations", tags=["recommendations"]
-)
+app.include_router(recommendation.router, prefix="/members/recommendations")

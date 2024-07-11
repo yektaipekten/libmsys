@@ -1,10 +1,10 @@
-from app.schemas import Book as PydanticBook, Member as PydanticMember
-from app.database import get_db_session
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.schemas import Book as PydanticBook, Member as PydanticMember
 from app.database import get_db_session
 from app import crud
+
+from app import recommendation
 
 router = APIRouter()
 
@@ -76,3 +76,11 @@ async def check_availability(book_id: int, db: Session = Depends(get_db_session)
         "library_id": db_book.library_id,
         "is_available": db_book.is_available,
     }
+
+
+@router.get("/{member_id}/recommendations")
+async def get_recommendations(member_id: int, db: Session = Depends(get_db_session)):
+    recommendations_df = recommendation.hybrid_recommendations(member_id, db)
+    if recommendations_df.empty:
+        raise HTTPException(status_code=404, detail="No recommendations found")
+    return recommendations_df.to_dict("records")

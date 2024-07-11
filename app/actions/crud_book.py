@@ -76,3 +76,15 @@ def return_book_availability(db: Session, book_id: int):
 
 def get_all_books(db: Session):
     return db.query(models.Book).all()
+
+
+def get_borrowed_books_by_member(db: Session, member_id: int):
+    borrowed_books = (
+        db.query(models.Transaction)
+        .filter(
+            models.Transaction.member_id == member_id,
+            models.Transaction.action == "borrowed",
+        )
+        .all()
+    )
+    return borrowed_books
