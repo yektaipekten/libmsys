@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.schemas import Book as PydanticBook, Member as PydanticMember
 from app.database import get_db_session
 from app import crud
+from app.models import Book as SQLAlchemyBook, Transaction as SQLAlchemyTransaction
 
 from app import recommendation
 
@@ -21,13 +22,18 @@ async def borrow_book(
     }
 
 
-@router.post("/{book_id}/return")
+@router.post("/{book_id}/{member_id}/return")
 async def return_book(
     book_id: int, member_id: int, db: Session = Depends(get_db_session)
 ):
-    db_book, error = crud.return_book(db, book_id, member_id)
+    db_transaction, error = crud.return_book(db, book_id, member_id)
     if error:
         raise HTTPException(status_code=404, detail=error)
+
+    db_book = db.query(SQLAlchemyBook).filter(SQLAlchemyBook.book_id == book_id).first()
+    if db_book is None:
+        raise HTTPException(status_code=404, detail="Book not found")
+
     return {
         "message": f"The book '{db_book.title}' with ID {db_book.book_id} has been returned."
     }

@@ -2,8 +2,6 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, F
 from sqlalchemy.orm import relationship
 from .database import Base
 from datetime import datetime
-from pydantic import BaseModel
-from typing import List
 
 
 class Library(Base):
@@ -91,14 +89,3 @@ class BorrowedBook(Base):
 
     member = relationship("Member", back_populates="borrowed_books")
     book = relationship("Book", back_populates="borrowed_books")
-
-
-class BookRecommendation(BaseModel):
-    book_id: int
-    title: str
-    author: str
-    categories: str
-
-
-class RecommendationsResponse(BaseModel):
-    recommendations: List[BookRecommendation]

@@ -27,7 +27,6 @@ class BookBase(BaseModel):
     author: Optional[str] = None
     ISBN: Optional[str] = None
     publication_year: Optional[int] = None
-    library_id: int
     is_available: bool
     average_rating: Optional[float] = None
     ratings_count: Optional[int] = None
@@ -37,7 +36,6 @@ class BookBase(BaseModel):
     publisher: Optional[str] = None
     categories: Optional[str] = None
     library_id: int
-    is_available: bool
 
 
 class BookCreate(BookBase):
@@ -46,7 +44,6 @@ class BookCreate(BookBase):
 
 class Book(BookBase):
     book_id: int
-    library_id: int
 
     class Config:
         from_attributes = True
@@ -96,7 +93,7 @@ class TransactionBase(BaseModel):
     book_id: int
     member_id: int
     issue_date: datetime
-    return_date: Optional[datetime] = None
+    return_date: datetime
 
 
 class TransactionCreate(TransactionBase):
